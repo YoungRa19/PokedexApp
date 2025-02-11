@@ -1,6 +1,5 @@
-import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
-import 'package:pokedex/models/pokemon.dart';
+import 'package:pokedexapp/models/pokemon.dart';
 
 class Dashboard extends StatefulWidget {
   const Dashboard({super.key});
@@ -11,25 +10,71 @@ class Dashboard extends StatefulWidget {
 
 class _DashboardState extends State<Dashboard> {
   List<Pokemon> pokemons = [];
-  bool isError = false;
+  TextEditingController _nameController = TextEditingController();
 
-  @override
-  void initState() {
-    // getPokemon();
-    super.initState();
+  void _showAddPokemonDialog() {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text("Agregar Pokémon"),
+          content: TextField(
+            controller: _nameController,
+            decoration: InputDecoration(hintText: "Ingrese el nombre"),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text("Cancelar"),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                String name = _nameController.text.trim().toLowerCase();
+                if (name.isEmpty) return;
+
+                Pokemon? pokemon = await Pokemon.getPokemon(name);
+                if (pokemon == null) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text("Pokémon no encontrado")),
+                  );
+                } else {
+                  setState(() {
+                    pokemons.add(pokemon);
+                  });
+                  Navigator.pop(context);
+                }
+              },
+              child: Text("Buscar"),
+            ),
+          ],
+        );
+      },
+    );
   }
 
-  Future<void> getPokemon() async {
-    try {
-      // pokemons = await Pokemon().getPokemon("pikachu");
-      // setState(() {
-      //   pokemon;
-      // });
-    } catch (e) {
-      setState(() {
-        isError = true;
-      });
-    }
+  void _showPokemonDetails(Pokemon pokemon) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text("Detalles de ${pokemon.name}"),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text("ID: ${pokemon.id}"),
+              Text("Habilidades: ${pokemon.abilities?.map((a) => a.name).join(", ") ?? "N/A"}"),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text("Cerrar"),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override
@@ -41,43 +86,35 @@ class _DashboardState extends State<Dashboard> {
         foregroundColor: Color(0xFF3D7DCA),
       ),
       body: Container(
-          color: Color(0xFFF2F2F2),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              if (isError)
-                Center(
-                  child: Text("Ocurrio un error inesperado"),
-                ),
-              if (pokemons.isNotEmpty && !isError)
-                Center(
-                  child: Column(
-                    children: [
-                      Text(
-                        "No se han ingresado pokemons",
-                        textAlign: TextAlign.center,
-                        style: TextStyle(color: Colors.black),
-                      ),
-                      SizedBox(
-                        height: 10,
-                      ),
-                      CircularProgressIndicator(
-                        color: Color(0xFFFFCC00),
-                        // backgroundColor: Color(0xFFFFCC00),
-                      ),
-                    ],
-                  ),
-                ),
-              // if (pokemon != null && !isError)
-              //   Center(
-              //     child: Text(
-              //       "${pokemon?.name}",
-              //       style: TextStyle(color: Colors.black),
-              //     ),
-              //   )
-            ],
-          )),
+        padding: EdgeInsets.all(16),
+        color: Color(0xFFF2F2F2),
+        child: Column(
+          children: [
+            Expanded(
+              child: pokemons.isEmpty
+                  ? Center(child: Text("No se han ingresado pokémons"))
+                  : ListView.builder(
+                itemCount: pokemons.length,
+                itemBuilder: (context, index) {
+                  final pokemon = pokemons[index];
+                  return ListTile(
+                    title: Text(pokemon.name ?? "Desconocido"),
+                    trailing: IconButton(
+                      icon: Icon(Icons.info, color: Colors.grey),
+                      onPressed: () => _showPokemonDetails(pokemon),
+                    ),
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: _showAddPokemonDialog,
+        child: Icon(Icons.add),
+        backgroundColor: Colors.blue,
+      ),
     );
   }
 }
