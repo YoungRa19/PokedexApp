@@ -29,9 +29,7 @@ class Pokemon {
         order: body["order"],
         is_default: body["is_default"],
         location_area_encounters: body["location_area_encounters"],
-        abilities: (body["abilities"] as List)
-            .map((a) => Ability.fromMap(a["ability"]))
-            .toList(),
+        abilities: (body["abilities"] as List).map((a) => Ability.fromMap(a["ability"])).toList(),
       );
     } catch (e) {
       print("Error al obtener el Pokémon: $e");

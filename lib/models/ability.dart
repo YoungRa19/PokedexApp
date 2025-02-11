@@ -5,12 +5,12 @@ class Ability {
   bool? is_hidden;
   String? url;
 
-  Ability(
-      {this.ability,
-        this.name,
-        this.slot,
-        this.is_hidden,
-        this.url,});
+  Ability({
+    this.ability,
+    this.name,
+    this.slot,
+    this.is_hidden,
+    this.url,});
 
   factory Ability.fromMap(Map<String, dynamic> map) {
     return Ability(

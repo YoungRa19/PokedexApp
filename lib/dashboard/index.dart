@@ -82,7 +82,7 @@ class _DashboardState extends State<Dashboard> {
     return Scaffold(
       appBar: AppBar(
         title: Text('Pokédex'),
-        backgroundColor: Color(0xFFFFCC00),
+        backgroundColor: Color(0xFFFF0033),
         foregroundColor: Color(0xFF3D7DCA),
       ),
       body: Container(
