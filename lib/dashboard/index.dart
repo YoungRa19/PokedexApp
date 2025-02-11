@@ -24,7 +24,10 @@ class _DashboardState extends State<Dashboard> {
           ),
           actions: [
             TextButton(
-              onPressed: () => Navigator.pop(context),
+              onPressed: () {
+                Navigator.pop(context);
+                _nameController.clear(); // Limpia el campo al cancelar
+              },
               child: Text("Cancelar"),
             ),
             ElevatedButton(
@@ -41,6 +44,7 @@ class _DashboardState extends State<Dashboard> {
                   setState(() {
                     pokemons.add(pokemon);
                   });
+                  _nameController.clear(); // Limpia el campo después de agregar
                   Navigator.pop(context);
                 }
               },
@@ -84,6 +88,12 @@ class _DashboardState extends State<Dashboard> {
         title: Text('Pokédex'),
         backgroundColor: Color(0xFFFF0033),
         foregroundColor: Color(0xFF3D7DCA),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.add, color: Colors.white),
+            onPressed: _showAddPokemonDialog,
+          ),
+        ],
       ),
       body: Container(
         padding: EdgeInsets.all(16),
@@ -109,11 +119,6 @@ class _DashboardState extends State<Dashboard> {
             ),
           ],
         ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _showAddPokemonDialog,
-        child: Icon(Icons.add),
-        backgroundColor: Colors.blue,
       ),
     );
   }
