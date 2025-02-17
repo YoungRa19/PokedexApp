@@ -1,12 +1,10 @@
 class Ability {
-  int? ability;
   String? name;
   int? slot;
   bool? is_hidden;
   String? url;
 
   Ability({
-    this.ability,
     this.name,
     this.slot,
     this.is_hidden,

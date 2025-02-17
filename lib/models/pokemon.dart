@@ -1,5 +1,13 @@
 import 'package:dio/dio.dart';
 import 'package:pokedexapp/models/ability.dart';
+import 'package:pokedexapp/models/sprite.dart';
+import 'package:pokedexapp/models/forms.dart';
+import 'package:pokedexapp/models/spices.dart';
+import 'package:pokedexapp/models/type.dart';
+import 'package:pokedexapp/models/stat.dart';
+import 'package:pokedexapp/models/game_indices.dart';
+import 'package:pokedexapp/models/held_items.dart';
+import 'package:pokedexapp/models/move.dart';
 
 class Pokemon {
   int? id;

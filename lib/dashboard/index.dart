@@ -48,7 +48,7 @@ class _DashboardState extends State<Dashboard> {
                   Navigator.pop(context);
                 }
               },
-              child: Text("Buscar"),
+              child: Text("Añadir"),
             ),
           ],
         );
@@ -61,7 +61,7 @@ class _DashboardState extends State<Dashboard> {
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: Text("Detalles de ${pokemon.name}"),
+          title: Text("${pokemon.name}"),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
