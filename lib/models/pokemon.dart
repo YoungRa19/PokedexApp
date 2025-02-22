@@ -7,7 +7,11 @@ import 'package:pokedexapp/models/type.dart';
 import 'package:pokedexapp/models/stat.dart';
 import 'package:pokedexapp/models/game_indices.dart';
 import 'package:pokedexapp/models/held_items.dart';
+import 'package:pokedexapp/models/version_details.dart';
 import 'package:pokedexapp/models/move.dart';
+import 'package:pokedexapp/models/version_group_details.dart';
+import 'package:pokedexapp/models/move_learn_method.dart';
+import 'package:pokedexapp/models/version_group.dart';
 
 class Pokemon {
   int? id;
