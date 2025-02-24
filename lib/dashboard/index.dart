@@ -1,124 +1,118 @@
 import 'package:flutter/material.dart';
 import 'package:pokedexapp/models/pokemon.dart';
 
-class Dashboard extends StatefulWidget {
+void main() {
+  runApp(const Dashboard());
+}
+
+class Dashboard extends StatelessWidget {
   const Dashboard({super.key});
 
   @override
-  State<Dashboard> createState() => _DashboardState();
-}
-
-class _DashboardState extends State<Dashboard> {
-  List<Pokemon> pokemons = [];
-  TextEditingController _nameController = TextEditingController();
-
-  void _showAddPokemonDialog() {
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: Text("Agregar Pokémon"),
-          content: TextField(
-            controller: _nameController,
-            decoration: InputDecoration(hintText: "Ingrese el nombre"),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.pop(context);
-                _nameController.clear(); // Limpia el campo al cancelar
-              },
-              child: Text("Cancelar"),
-            ),
-            ElevatedButton(
-              onPressed: () async {
-                String name = _nameController.text.trim().toLowerCase();
-                if (name.isEmpty) return;
-
-                Pokemon? pokemon = await Pokemon.getPokemon(name);
-                if (pokemon == null) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text("Pokémon no encontrado")),
-                  );
-                } else {
-                  setState(() {
-                    pokemons.add(pokemon);
-                  });
-                  _nameController.clear(); // Limpia el campo después de agregar
-                  Navigator.pop(context);
-                }
-              },
-              child: Text("Añadir"),
-            ),
-          ],
-        );
-      },
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      home: const PokedexScreen(),
     );
   }
+}
 
-  void _showPokemonDetails(Pokemon pokemon) {
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: Text("${pokemon.name}"),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text("ID: ${pokemon.id}"),
-              Text("Habilidades: ${pokemon.abilities?.map((a) => a.name).join(", ") ?? "N/A"}"),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: Text("Cerrar"),
-            ),
-          ],
-        );
-      },
-    );
+class PokedexScreen extends StatefulWidget {
+  const PokedexScreen({super.key});
+
+  @override
+  _PokedexScreenState createState() => _PokedexScreenState();
+}
+
+class _PokedexScreenState extends State<PokedexScreen> {
+  List<Pokemon> pokemons = [];
+  Pokemon? selectedPokemon;
+
+  @override
+  void initState() {
+    super.initState();
+    fetchPokemons();
+  }
+
+  Future<void> fetchPokemons() async {
+    List<Pokemon> tempList = [];
+    for (int i = 1; i <= 151; i++) {
+      Pokemon? p = await Pokemon.getPokemon(i);
+      if (p != null) {
+        tempList.add(p);
+      }
+    }
+    setState(() {
+      pokemons = tempList;
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Pokédex'),
-        backgroundColor: Color(0xFFFF0033),
-        foregroundColor: Color(0xFF3D7DCA),
-        actions: [
-          IconButton(
-            icon: Icon(Icons.add, color: Colors.white),
-            onPressed: _showAddPokemonDialog,
-          ),
-        ],
+        title: const Text("Pokedex de Kanto"),
+        backgroundColor: Colors.red,
+        foregroundColor: Colors.white,
       ),
-      body: Container(
-        padding: EdgeInsets.all(16),
-        color: Color(0xFFF2F2F2),
-        child: Column(
-          children: [
-            Expanded(
-              child: pokemons.isEmpty
-                  ? Center(child: Text("No se han ingresado pokémons"))
-                  : ListView.builder(
-                itemCount: pokemons.length,
-                itemBuilder: (context, index) {
-                  final pokemon = pokemons[index];
-                  return ListTile(
-                    title: Text(pokemon.name ?? "Desconocido"),
-                    trailing: IconButton(
-                      icon: Icon(Icons.info, color: Colors.grey),
-                      onPressed: () => _showPokemonDetails(pokemon),
+      body: Row(
+        children: [
+          Expanded(
+            flex: 3,
+            child: Container(
+              color: Colors.white,
+              child: selectedPokemon == null
+                  ? const Center(child: Text("Seleccione un Pokémon"))
+                  : Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  if (selectedPokemon!.sprites?.front_default != null)
+                    Image.network(selectedPokemon!.sprites!.front_default!),
+                  Container(
+                    color: Colors.grey[200],
+                    padding: const EdgeInsets.all(8.0),
+                    child: Column(
+                      children: [
+                        Text("ID: ${selectedPokemon!.id}"),
+                        Text("Nombre: ${selectedPokemon!.name}"),
+                        Text("Species: ${selectedPokemon!.species?.name ?? 'N/A'}"),
+                      ],
                     ),
-                  );
-                },
+                  ),
+                ],
               ),
             ),
-          ],
-        ),
+          ),
+          Expanded(
+            flex: 3,
+            child: pokemons.isEmpty
+                ? const Center(child: CircularProgressIndicator())
+                : ListView.builder(
+              itemCount: pokemons.length,
+              itemBuilder: (context, index) {
+                final pokemon = pokemons[index];
+                return Container(
+                  decoration: BoxDecoration(
+                    border: selectedPokemon?.id == pokemon.id
+                        ? Border.all(color: Colors.red, width: 1.5)
+                        : null,
+                  ),
+                  child: ListTile(
+                    leading: pokemon.sprites?.front_default != null
+                        ? Image.network(pokemon.sprites!.front_default!)
+                        : const SizedBox(width: 50, height: 50),
+                    title: Text("${pokemon.id}. ${pokemon.name}"),
+                    onTap: () {
+                      setState(() {
+                        selectedPokemon = pokemon;
+                      });
+                    },
+                  ),
+                );
+              },
+            ),
+          ),
+        ],
       ),
     );
   }

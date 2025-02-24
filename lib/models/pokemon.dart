@@ -17,14 +17,12 @@ class Pokemon {
   String? location_area_encounters;
 
   List<Ability>? abilities = [];
-  List<Move>? moves = [];
-  List<Sprite>? sprites = [];
-  List<Type>? types = [];
+  Sprite? sprites;
   List<Forms>? forms = [];
-  List<Spices>? spices = [];
+  Species? species;
+  List<Type>? types = [];
   List<Stat>? stats = [];
   List<GameIndices>? gameindices = [];
-  List<HeldItems>? helditems = [];
 
 
   Pokemon(
@@ -34,14 +32,12 @@ class Pokemon {
         this.is_default,
         this.location_area_encounters,
         this.abilities,
-        this.moves,
         this.sprites,
-        this.types,
         this.forms,
-        this.spices,
+        this.species,
+        this.types,
         this.stats,
-        this.gameindices,
-        this.helditems,});
+        this.gameindices,});
 
   static Future<Pokemon?> getPokemon(int id) async {
     try {
@@ -54,20 +50,17 @@ class Pokemon {
         order: body["order"],
         is_default: body["is_default"],
         location_area_encounters: body["location_area_encounters"],
-        abilities: (body["abilities"] as List).map((a) => Ability.fromMap(a["ability"])).toList(),
-        moves: (body["moves"] as List).map((a) => Move.fromMap(a["move"])).toList(),
-        sprites: (body["sprites"] as List).map((a) => Sprite.fromMap(a["sprites"])).toList(),
-        types: (body["types"] as List).map((a) => Type.fromMap(a["type"])).toList(),
-        forms: (body["forms"] as List).map((a) => Forms.fromMap(a["forms"])).toList(),
-        spices: (body["spices"] as List).map((a) => Spices.fromMap(a["spices"])).toList(),
-        stats: (body["stats"] as List).map((a) => Stat.fromMap(a["stat"])).toList(),
-        gameindices: (body["gameindices"] as List).map((a) => GameIndices.fromMap(a["gameindices"])).toList(),
-        helditems: (body["helditems"] as List).map((a) => HeldItems.fromMap(a["helditems"])).toList(),
-
+        abilities: (body["abilities"] as List?)?.map((a) => Ability.fromMap(a["ability"])).toList() ?? [],
+        sprites: body["sprites"] != null ? Sprite.fromMap(body["sprites"]) : null,
+        forms: (body["forms"] as List?)?.map((a) => Forms.fromMap(a)).toList() ?? [],
+        species: body["species"] != null ? Species.fromMap(body["species"]) : null,
+        types: (body["types"] as List?)?.map((a) => Type.fromMap(a["types"])).toList() ?? [],
+        stats: (body["stats"] as List?)?.map((a) => Stat.fromMap(a["stat"])).toList() ?? [],
+        gameindices: (body["game_indices"] as List?)?.map((a) => GameIndices.fromMap(a)).toList() ?? [],
       );
     } catch (e) {
       print("Error al obtener el Pokémon: $e");
-      return null; // Retorna null si hay error
+      return null;
     }
   }
 }
