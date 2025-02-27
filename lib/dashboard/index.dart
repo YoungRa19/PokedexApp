@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:pokedexapp/models/pokemon.dart';
+import 'package:dio/dio.dart';
 
 void main() {
   runApp(const Dashboard());
@@ -27,38 +28,62 @@ class PokedexScreen extends StatefulWidget {
 class _PokedexScreenState extends State<PokedexScreen> {
   List<Pokemon> pokemons = [];
   Pokemon? selectedPokemon;
+  bool isLoading = false;
 
   @override
   void initState() {
     super.initState();
-    fetchPokemons();
+    getPokemon();
   }
 
-  Future<void> fetchPokemons() async {
-    List<Pokemon> tempList = [];
-    for (int i = 1; i <= 151; i++) {
-      Pokemon? p = await Pokemon.getPokemon(i);
-      if (p != null) {
-        tempList.add(p);
-      }
-    }
+  Future<void> getPokemon() async {
     setState(() {
-      pokemons = tempList;
+      isLoading = true;
     });
+    final response = await Dio().get('https://pokeapi.co/api/v2/pokemon?limit=150');
+    setState(() {
+      pokemons = response.data["results"].map<Pokemon>((result) {
+        int id = int.parse(result["url"].split("/").reversed.elementAt(1));
+        return Pokemon(name: _capitalize(result['name']), id: id, url: result["url"]);
+      }).toList();
+      isLoading = false;
+    });
+  }
+
+  Future<void> fetchPokemonDetails(Pokemon pokemon) async {
+    if (pokemon.sprites == null) {
+      Pokemon? fullData = await Pokemon.getPokemon(pokemon.id!);
+      if (fullData != null) {
+        setState(() {
+          int index = pokemons.indexWhere((p) => p.id == pokemon.id);
+          if (index != -1) {
+            pokemons[index] = fullData;
+          }
+          selectedPokemon = fullData;
+        });
+      }
+    } else {
+      setState(() {
+        selectedPokemon = pokemon;
+      });
+    }
+  }
+
+  String _capitalize(String text) {
+    return text.isNotEmpty ? text[0].toUpperCase() + text.substring(1) : text;
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Pokedex de Kanto"),
+        title: const Text("Pokédex de Kanto"),
         backgroundColor: Colors.red,
-        foregroundColor: Colors.white,
+        foregroundColor: Colors.black,
       ),
       body: Row(
         children: [
           Expanded(
-            flex: 3,
             child: Container(
               color: Colors.white,
               child: selectedPokemon == null
@@ -69,7 +94,10 @@ class _PokedexScreenState extends State<PokedexScreen> {
                   if (selectedPokemon!.sprites?.front_default != null)
                     Image.network(selectedPokemon!.sprites!.front_default!),
                   Container(
-                    color: Colors.grey[200],
+                    decoration: BoxDecoration(
+                      color: Colors.red[400],
+                      borderRadius: BorderRadius.circular(10),
+                    ),
                     padding: const EdgeInsets.all(8.0),
                     child: Column(
                       children: [
@@ -84,29 +112,34 @@ class _PokedexScreenState extends State<PokedexScreen> {
             ),
           ),
           Expanded(
-            flex: 3,
-            child: pokemons.isEmpty
+            child: isLoading
                 ? const Center(child: CircularProgressIndicator())
                 : ListView.builder(
               itemCount: pokemons.length,
               itemBuilder: (context, index) {
                 final pokemon = pokemons[index];
-                return Container(
-                  decoration: BoxDecoration(
-                    border: selectedPokemon?.id == pokemon.id
-                        ? Border.all(color: Colors.red, width: 1.5)
-                        : null,
-                  ),
-                  child: ListTile(
-                    leading: pokemon.sprites?.front_default != null
-                        ? Image.network(pokemon.sprites!.front_default!)
-                        : const SizedBox(width: 50, height: 50),
-                    title: Text("${pokemon.id}. ${pokemon.name}"),
+                bool isSelected = selectedPokemon?.id == pokemon.id;
+                return Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 4.0, horizontal: 8.0),
+                  child: GestureDetector(
                     onTap: () {
-                      setState(() {
-                        selectedPokemon = pokemon;
-                      });
+                      if (isSelected) {
+                        setState(() {
+                          selectedPokemon = null;
+                        });
+                      } else {
+                        fetchPokemonDetails(pokemon);
+                      }
                     },
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: Color(0xFFADD8E6),
+                        borderRadius: BorderRadius.circular(10),
+                        border: isSelected ? Border.all(color: Colors.red, width: 2) : null,
+                      ),
+                      padding: const EdgeInsets.all(10),
+                      child: Text("${pokemon.id}. ${pokemon.name}"),
+                    ),
                   ),
                 );
               },
