@@ -73,6 +73,17 @@ class _PokedexScreenState extends State<PokedexScreen> {
     return text.isNotEmpty ? text[0].toUpperCase() + text.substring(1) : text;
   }
 
+  void navigateToDetails() {
+    if (selectedPokemon != null) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => PokemonDetailsScreen(pokemon: selectedPokemon!),
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -92,7 +103,10 @@ class _PokedexScreenState extends State<PokedexScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   if (selectedPokemon!.sprites?.front_default != null)
-                    Image.network(selectedPokemon!.sprites!.front_default!),
+                    GestureDetector(
+                      onTap: navigateToDetails,
+                      child: Image.network(selectedPokemon!.sprites!.front_default!),
+                    ),
                   Container(
                     decoration: BoxDecoration(
                       color: Colors.red[400],
@@ -103,7 +117,7 @@ class _PokedexScreenState extends State<PokedexScreen> {
                       children: [
                         Text("ID: ${selectedPokemon!.id}"),
                         Text("Nombre: ${selectedPokemon!.name}"),
-                        Text("Species: ${selectedPokemon!.species?.name ?? 'N/A'}"),
+                        Text("Tipos: ${selectedPokemon!.types?.map((t) => t.name).join(', ') ?? 'N/A'}"),
                       ],
                     ),
                   ),
@@ -148,5 +162,160 @@ class _PokedexScreenState extends State<PokedexScreen> {
         ],
       ),
     );
+  }
+}
+
+class PokemonDetailsScreen extends StatefulWidget {
+  final Pokemon pokemon;
+
+  const PokemonDetailsScreen({Key? key, required this.pokemon}) : super(key: key);
+
+  @override
+  _PokemonDetailsScreenState createState() => _PokemonDetailsScreenState();
+}
+
+class _PokemonDetailsScreenState extends State<PokemonDetailsScreen> {
+  String selectedTab = "Información";
+  String selectedForm = "Macho";
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text("Pokédex de Kanto"),
+        backgroundColor: Colors.red,
+        foregroundColor: Colors.black,
+      ),
+      body: Column(
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              _tabButton("Volver", () => Navigator.pop(context)),
+              _tabButton("Información", () => setState(() => selectedTab = "Información")),
+              _tabButton("Formas", () => setState(() => selectedTab = "Formas")),
+            ],
+          ),
+          Expanded(
+            child: selectedTab == "Información" ? _buildInfoTab() : _buildFormsTab(),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _tabButton(String title, VoidCallback onPressed) {
+    return TextButton(
+      onPressed: onPressed,
+      style: TextButton.styleFrom(
+        backgroundColor: selectedTab == title ? Colors.red : Colors.transparent,
+        side: const BorderSide(color: Colors.black),
+      ),
+      child: Text(title, style: const TextStyle(color: Colors.black)),
+    );
+  }
+
+  Widget _buildInfoTab() {
+    return Row(
+      children: [
+        Expanded(child: Image.network(widget.pokemon.sprites!.front_default!)),
+        Expanded(
+          child: Column(
+            children: [
+              Text("ID: ${widget.pokemon.id}"),
+              Text("Nombre: ${widget.pokemon.name}"),
+              Text("Tipos: ${widget.pokemon.types?.map((t) => t.name).join(', ') ?? 'N/A'}"),
+              Text("Altura: ${(widget.pokemon.height! / 10).toStringAsFixed(1)} m"),
+              Text("Peso: ${(widget.pokemon.weight! / 10).toStringAsFixed(1)} kg"),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildFormsTab() {
+    return Row(
+      children: [
+        // Sección izquierda: Sprite frontal
+        Expanded(
+          child: Center(
+            child: Image.network(
+              _getSprite(selectedForm, true),
+              width: 150,
+              height: 150,
+            ),
+          ),
+        ),
+
+        // Sección central: Sprite trasero
+        Expanded(
+          child: Center(
+            child: Image.network(
+              _getSprite(selectedForm, false),
+              width: 150,
+              height: 150,
+            ),
+          ),
+        ),
+
+        // Sección derecha: Botones de selección
+        Expanded(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: ["Macho", "Hembra", "Macho shiny", "Hembra shiny"].map((form) {
+              bool isSelected = selectedForm == form;
+              return GestureDetector(
+                onTap: () {
+                  setState(() {
+                    selectedForm = form;
+                  });
+                },
+                child: Container(
+                  margin: const EdgeInsets.symmetric(vertical: 5),
+                  padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                  decoration: BoxDecoration(
+                    color: isSelected ? Colors.red : Colors.white,
+                    border: Border.all(color: Colors.black),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Text(
+                    form,
+                    style: TextStyle(color: isSelected ? Colors.white : Colors.black),
+                  ),
+                ),
+              );
+            }).toList(),
+          ),
+        ),
+      ],
+    );
+  }
+
+
+// Función auxiliar para obtener el sprite según la forma seleccionada
+  String _getSprite(String form, bool isFront) {
+    if (widget.pokemon.sprites == null) return '';
+
+    switch (form) {
+      case "Macho":
+        return isFront
+            ? widget.pokemon.sprites?.front_default ?? ''
+            : widget.pokemon.sprites?.back_default ?? '';
+      case "Hembra":
+        return isFront
+            ? widget.pokemon.sprites?.front_female ?? ''
+            : widget.pokemon.sprites?.back_female ?? '';
+      case "Macho shiny":
+        return isFront
+            ? widget.pokemon.sprites?.front_shiny ?? ''
+            : widget.pokemon.sprites?.back_shiny ?? '';
+      case "Hembra shiny":
+        return isFront
+            ? widget.pokemon.sprites?.front_shiny_female ?? ''
+            : widget.pokemon.sprites?.back_shiny_female ?? '';
+      default:
+        return '';
+    }
   }
 }
