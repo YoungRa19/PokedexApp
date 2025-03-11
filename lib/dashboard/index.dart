@@ -191,13 +191,16 @@ class _PokemonDetailsScreenState extends State<PokemonDetailsScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
-              _tabButton("Volver", () => Navigator.pop(context)),
-              _tabButton("Información", () => setState(() => selectedTab = "Información")),
-              _tabButton("Formas", () => setState(() => selectedTab = "Formas")),
+              _tabButton("Información", () =>
+                  setState(() => selectedTab = "Información")),
+              _tabButton(
+                  "Formas", () => setState(() => selectedTab = "Formas")),
             ],
           ),
           Expanded(
-            child: selectedTab == "Información" ? _buildInfoTab() : _buildFormsTab(),
+            child: selectedTab == "Información"
+                ? _buildInfoTab()
+                : _buildFormsTab(),
           ),
         ],
       ),
@@ -224,9 +227,12 @@ class _PokemonDetailsScreenState extends State<PokemonDetailsScreen> {
             children: [
               Text("ID: ${widget.pokemon.id}"),
               Text("Nombre: ${widget.pokemon.name}"),
-              Text("Tipos: ${widget.pokemon.types?.map((t) => t.name).join(', ') ?? 'N/A'}"),
-              Text("Altura: ${(widget.pokemon.height! / 10).toStringAsFixed(1)} m"),
-              Text("Peso: ${(widget.pokemon.weight! / 10).toStringAsFixed(1)} kg"),
+              Text("Tipos: ${widget.pokemon.types?.map((t) => t.name).join(
+                  ', ') ?? 'N/A'}"),
+              Text("Altura: ${(widget.pokemon.height! / 10).toStringAsFixed(
+                  1)} m"),
+              Text("Peso: ${(widget.pokemon.weight! / 10).toStringAsFixed(
+                  1)} kg"),
             ],
           ),
         ),
@@ -237,22 +243,26 @@ class _PokemonDetailsScreenState extends State<PokemonDetailsScreen> {
   Widget _buildFormsTab() {
     return Row(
       children: [
-        // Sección izquierda: Sprite frontal
+        // Sección izquierda: Sprite frontal (o Ditto si no encontrado)
         Expanded(
           child: Center(
             child: Image.network(
-              _getSprite(selectedForm, true),
+              _getSprite(selectedForm, true) ??
+                  "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/132.png",
               width: 150,
               height: 150,
             ),
           ),
         ),
 
-        // Sección central: Sprite trasero
+        // Sección central: Texto "No encontrado" si el sprite no existe
         Expanded(
           child: Center(
-            child: Image.network(
-              _getSprite(selectedForm, false),
+            child: _getSprite(selectedForm, false) == null
+                ? const Text("No encontrado",
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold))
+                : Image.network(
+              _getSprite(selectedForm, false)!,
               width: 150,
               height: 150,
             ),
@@ -263,7 +273,8 @@ class _PokemonDetailsScreenState extends State<PokemonDetailsScreen> {
         Expanded(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
-            children: ["Macho", "Hembra", "Macho shiny", "Hembra shiny"].map((form) {
+            children: ["Macho", "Hembra", "Macho shiny", "Hembra shiny"].map((
+                form) {
               bool isSelected = selectedForm == form;
               return GestureDetector(
                 onTap: () {
@@ -273,7 +284,8 @@ class _PokemonDetailsScreenState extends State<PokemonDetailsScreen> {
                 },
                 child: Container(
                   margin: const EdgeInsets.symmetric(vertical: 5),
-                  padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                  padding: const EdgeInsets.symmetric(
+                      vertical: 8, horizontal: 16),
                   decoration: BoxDecoration(
                     color: isSelected ? Colors.red : Colors.white,
                     border: Border.all(color: Colors.black),
@@ -281,7 +293,8 @@ class _PokemonDetailsScreenState extends State<PokemonDetailsScreen> {
                   ),
                   child: Text(
                     form,
-                    style: TextStyle(color: isSelected ? Colors.white : Colors.black),
+                    style: TextStyle(
+                        color: isSelected ? Colors.white : Colors.black),
                   ),
                 ),
               );
@@ -292,30 +305,29 @@ class _PokemonDetailsScreenState extends State<PokemonDetailsScreen> {
     );
   }
 
-
-// Función auxiliar para obtener el sprite según la forma seleccionada
-  String _getSprite(String form, bool isFront) {
-    if (widget.pokemon.sprites == null) return '';
+  String? _getSprite(String form, bool isFront) {
+    if (widget.pokemon.sprites == null) return null;
 
     switch (form) {
       case "Macho":
         return isFront
-            ? widget.pokemon.sprites?.front_default ?? ''
-            : widget.pokemon.sprites?.back_default ?? '';
+            ? widget.pokemon.sprites?.front_default
+            : widget.pokemon.sprites?.back_default;
       case "Hembra":
         return isFront
-            ? widget.pokemon.sprites?.front_female ?? ''
-            : widget.pokemon.sprites?.back_female ?? '';
+            ? widget.pokemon.sprites?.front_female
+            : widget.pokemon.sprites?.back_female;
       case "Macho shiny":
         return isFront
-            ? widget.pokemon.sprites?.front_shiny ?? ''
-            : widget.pokemon.sprites?.back_shiny ?? '';
+            ? widget.pokemon.sprites?.front_shiny
+            : widget.pokemon.sprites?.back_shiny;
       case "Hembra shiny":
         return isFront
-            ? widget.pokemon.sprites?.front_shiny_female ?? ''
-            : widget.pokemon.sprites?.back_shiny_female ?? '';
+            ? widget.pokemon.sprites?.front_shiny_female
+            : widget.pokemon.sprites?.back_shiny_female;
       default:
-        return '';
+        return null;
     }
   }
+
 }
